@@ -104,4 +104,4 @@ jobs:
           command: heroku container:login
       - run:
           name: Release Docker image to Heroku
-          command: heroku container:release -a oc-lettings-24 web
+          command: heroku container:release -a $HEROKU_APP_NAME web
