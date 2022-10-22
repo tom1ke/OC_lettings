@@ -75,3 +75,38 @@ Utilisation de PowerShell, comme ci-dessus sauf :
 
 - Pour activer l'environnement virtuel, `.\venv\Scripts\Activate.ps1` 
 - Remplacer `which <my-command>` par `(Get-Command <my-command>).Path`
+
+## Déploiement
+
+Le déploiement de l'application s'effectue via un pipeline CircleCI. 
+Le fichier de configuration `.circleci/config.yml` défini le *workflow* de déploiement.
+
+Tout *push* sur le dépôt distant GitHub lié déclenche le *workflow* CircleCI, quelque soit la branche. L'application passe par une phase de construction (image Docker), puis de *linting* et de test.
+
+En revanche, les *pushs* sur la branche *master* permettent, eux, de déclencher la suite  du *workflow*.
+
+Lors d'un push sur la branche *master* :
+- construction d'une image Docker générique, *linting* et test de l'application
+- une image Docker définie est construite (*Dockerfile* à la racine du projet)
+- elle est publiée sur DockerHub
+- elle est déployée sur Heroku pour rendre l'application disponible
+
+Chaque *job* doit être validé pour passer au suivant.
+
+### Étapes
+- Mettre en place le projet sur CircleCI en liant le dépôt GitHub
+- Sélectionner le fichier de configuration `.circleci/config.yml`
+- Définir les variables d'environnement dans les réglages du projet sur CircleCI :
+  - DOCKERHUB_USERNAME
+  - DOCKER_PASSWORD
+  - HEROKU_API_KEY
+  - HEROKU_LOGIN
+  - HEROKU_APP_NAME
+- Créer l'application sur Heroku (même nom que dans HEROKU_APP_NAME)
+- *Push* vers une branche autre que *master* pour uniquement déclencher la phase *build-and-test*
+- *Push* vers la branche *master* pour effectuer le déploiement complet sur Heroku
+
+## Surveillance
+La surveillance de l'application est effectué par Sentry.
+
+Pour reconfigurer vers un autre projet Sentry, il faudra modifier l'url de la variable `dsn` à la fin du fichier `oc_lettings_site/settings.py` dans ```sentry_sdk.init()```
